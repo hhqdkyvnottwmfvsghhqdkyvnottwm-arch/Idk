@@ -1,0 +1,3 @@
+local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Rayfield/main/source", true))()
+local Window = Rayfield:CreateWindow({Name="Blade Ball Hub"})
+-- Add tabs, toggles, sliders for features
