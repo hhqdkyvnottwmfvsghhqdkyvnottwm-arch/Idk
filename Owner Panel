@@ -1,0 +1,166 @@
+-- Load Rayfield
+local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source'))()
+
+-- Create main window
+local Window = Rayfield:CreateWindow({
+    Name = "Owner GUI",
+    LoadingTitle = "Loading Owner GUI...",
+    LoadingSubtitle = "by Hellchain Scythe Lua",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = nil,
+        FileName = "OwnerConfig"
+    },
+    Discord = {
+        Enabled = false,
+        Invite = "",
+        RememberJoins = false
+    },
+    KeySystem = false
+})
+
+-- Owner tab
+local OwnerTab = Window:CreateTab("Owner", 4483362458)
+
+-- Table to store permissions
+_G.OwnerCommands = _G.OwnerCommands or {}
+
+-- Function to give Owner powers
+local function GiveOwner(player)
+    if not player or not player.Character then return end
+    print(player.Name .. " now has Owner powers!")
+
+    local character = player.Character
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid.WalkSpeed = 50
+        humanoid.JumpPower = 100
+    end
+
+    _G.OwnerCommands[player.UserId] = true
+    print("Owner permissions granted!")
+end
+
+-- Button to get Owner powers
+OwnerTab:CreateButton({
+    Name = "Get Owner Powers",
+    Callback = function()
+        local plr = game.Players.LocalPlayer
+        GiveOwner(plr)
+    end
+})
+
+-- Fly function
+local function Fly(player)
+    local character = player.Character
+    if not character then return end
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    local bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.Velocity = Vector3.new(0,50,0)
+    bodyVelocity.MaxForce = Vector3.new(0,400000,0)
+    bodyVelocity.Parent = hrp
+    game.Debris:AddItem(bodyVelocity, 1)
+end
+
+-- God mode function
+local function GodMode(player)
+    local character = player.Character
+    if character then
+        for _, part in pairs(character:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+                part.Anchored = false
+            end
+        end
+    end
+end
+
+-- Teleport function
+local function Teleport(player, target)
+    if player.Character and target.Character then
+        player.Character:MoveTo(target.Character.PrimaryPart.Position + Vector3.new(0,5,0))
+    end
+end
+
+-- Invisibility function
+local function Invisible(player)
+    local character = player.Character
+    if character then
+        for _, part in pairs(character:GetChildren()) do
+            if part:IsA("BasePart") or part:IsA("MeshPart") then
+                part.Transparency = 1
+            elseif part:IsA("Decal") then
+                part.Transparency = 1
+            end
+        end
+    end
+end
+
+-- Kick function
+local function KickPlayer(target)
+    if target then
+        target:Kick("Kicked by Owner")
+    end
+end
+
+-- Player list section
+local PlayersSection = OwnerTab:CreateSection("Players")
+
+local function RefreshPlayers()
+    -- Remove previous buttons
+    for _, btn in pairs(OwnerTab.Sections[1].Elements) do
+        if btn.Type == "Button" and btn.Name ~= "Players" then
+            btn:Remove()
+        end
+    end
+
+    for _, plr in pairs(game.Players:GetPlayers()) do
+        if plr ~= game.Players.LocalPlayer then
+            OwnerTab:CreateButton({
+                Name = "Player: " .. plr.Name,
+                Callback = function()
+                    local options = {"Teleport", "Kick", "Give Powers", "Fly", "God", "Invisible"}
+                    for i, cmd in pairs(options) do
+                        print(i .. ". " .. cmd)
+                    end
+                    -- Example: choose command manually via console
+                    local choice = tonumber(tostring(game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("CommandInput") or "1"))
+                    if choice == 1 then
+                        Teleport(game.Players.LocalPlayer, plr)
+                    elseif choice == 2 then
+                        KickPlayer(plr)
+                    elseif choice == 3 then
+                        GiveOwner(plr)
+                    elseif choice == 4 then
+                        Fly(plr)
+                    elseif choice == 5 then
+                        GodMode(plr)
+                    elseif choice == 6 then
+                        Invisible(plr)
+                    end
+                end
+            })
+        end
+    end
+end
+
+-- Refresh button
+OwnerTab:CreateButton({
+    Name = "Refresh Player List",
+    Callback = function()
+        RefreshPlayers()
+    end
+})
+
+-- Keybind to toggle GUI
+OwnerTab:CreateKeybind({
+    Name = "Toggle GUI",
+    CurrentKeybind = "RightControl",
+    HoldToInteract = false,
+    Callback = function()
+        Window:Toggle()
+    end
+})
+
+print("Interactive Owner GUI loaded successfully!")
