@@ -1,0 +1,46 @@
+-- Diagnostic loader: paste into your executor and run
+local url = "https://pastebin.com/raw/a9AzutXU"
+
+local function notify(msg)
+    -- try common toasters, fallback to print
+    pcall(function() if syn and syn.toast_notification then syn.toast_notification({Title="Loader", Content=msg, Duration=4}) end end)
+    pcall(function() if PROTOSMASHER_DELETE or queue_on_teleport then end end) -- noop to avoid lint
+    print("[Loader] "..msg)
+end
+
+local ok, body = pcall(function()
+    return game:HttpGet(url, true)
+end)
+
+if not ok or not body then
+    notify("Download failed. Check your HTTP support or the URL. (error returned)")
+    if not ok then print("http error:", body) end
+    return
+end
+
+notify(("Downloaded %d bytes"):format(#body))
+print("=== first 300 chars of downloaded file ===")
+print(body:sub(1,300))
+print("==========================================")
+
+-- quick sanity
+if #body < 20 then
+    notify("Downloaded file is too short — probably an empty or private paste.")
+    return
+end
+
+local fn, compileErr = loadstring(body)
+if not fn then
+    notify("loadstring compile error — check script syntax.")
+    print("compile error:", compileErr)
+    return
+end
+
+-- run in protected call to capture runtime errors
+local ok2, runErr = pcall(function() fn() end)
+if not ok2 then
+    notify("Script ran but threw a runtime error.")
+    print("runtime error:", runErr)
+else
+    notify("Script loaded & executed successfully.")
+end
