@@ -1,0 +1,252 @@
+-- MAKAL HUB Gravity Boost & ESP Script
+-- For educational purposes only
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- GUI Creation
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "MakalHubGUI"
+screenGui.Parent = player.PlayerGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 200, 0, 250)
+mainFrame.Position = UDim2.new(0, 10, 0, 10)
+mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Text = "MAKAL HUB v1.0"
+title.Font = Enum.Font.SciFi
+title.Parent = mainFrame
+
+-- Gravity Control
+local gravityButton = Instance.new("TextButton")
+gravityButton.Size = UDim2.new(0.9, 0, 0, 30)
+gravityButton.Position = UDim2.new(0.05, 0, 0, 40)
+gravityButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+gravityButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+gravityButton.Text = "Gravity Boost: OFF"
+gravityButton.Font = Enum.Font.SciFi
+gravityButton.Parent = mainFrame
+
+-- Float Control
+local floatButton = Instance.new("TextButton")
+floatButton.Size = UDim2.new(0.9, 0, 0, 30)
+floatButton.Position = UDim2.new(0.05, 0, 0, 80)
+floatButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+floatButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+floatButton.Text = "Float: OFF"
+floatButton.Font = Enum.Font.SciFi
+floatButton.Parent = mainFrame
+
+-- ESP Players
+local espButton = Instance.new("TextButton")
+espButton.Size = UDim2.new(0.9, 0, 0, 30)
+espButton.Position = UDim2.new(0.05, 0, 0, 120)
+espButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+espButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+espButton.Text = "ESP Players: OFF"
+espButton.Font = Enum.Font.SciFi
+espButton.Parent = mainFrame
+
+-- ESP Base
+local espBaseButton = Instance.new("TextButton")
+espBaseButton.Size = UDim2.new(0.9, 0, 0, 30)
+espBaseButton.Position = UDim2.new(0.05, 0, 0, 160)
+espBaseButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+espBaseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+espBaseButton.Text = "ESP Base: OFF"
+espBaseButton.Font = Enum.Font.SciFi
+espBaseButton.Parent = mainFrame
+
+-- Close Button
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0.9, 0, 0, 30)
+closeButton.Position = UDim2.new(0.05, 0, 0, 210)
+closeButton.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.Text = "Close GUI"
+closeButton.Font = Enum.Font.SciFi
+closeButton.Parent = mainFrame
+
+-- Variables
+local gravityEnabled = false
+local floatEnabled = false
+local espPlayersEnabled = false
+local espBaseEnabled = false
+local originalGravity = workspace.Gravity
+local espHighlights = {}
+
+-- Functions
+local function createESP(target, color)
+    if not target then return end
+    
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "MakalESP"
+    highlight.Adornee = target
+    highlight.FillColor = color
+    highlight.OutlineColor = Color3.new(1, 1, 1)
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    highlight.Parent = target
+    
+    espHighlights[target] = highlight
+end
+
+local function removeESP(target)
+    if espHighlights[target] then
+        espHighlights[target]:Destroy()
+        espHighlights[target] = nil
+    end
+end
+
+local function togglePlayerESP()
+    espPlayersEnabled = not espPlayersEnabled
+    
+    if espPlayersEnabled then
+        espButton.Text = "ESP Players: ON"
+        espButton.BackgroundColor3 = Color3.fromRGB(40, 180, 40)
+        
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= player and plr.Character then
+                createESP(plr.Character, Color3.fromRGB(255, 50, 50))
+            end
+        end
+        
+        Players.PlayerAdded:Connect(function(plr)
+            plr.CharacterAdded:Connect(function(char)
+                if espPlayersEnabled then
+                    createESP(char, Color3.fromRGB(255, 50, 50))
+                end
+            end)
+        end)
+    else
+        espButton.Text = "ESP Players: OFF"
+        espButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr.Character then
+                removeESP(plr.Character)
+            end
+        end
+    end
+end
+
+local function toggleBaseESP()
+    espBaseEnabled = not espBaseEnabled
+    
+    if espBaseEnabled then
+        espBaseButton.Text = "ESP Base: ON"
+        espBaseButton.BackgroundColor3 = Color3.fromRGB(40, 180, 40)
+        
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("Part") and (obj.Name:lower():find("base") or obj.Name:lower():find("wall")) then
+                createESP(obj, Color3.fromRGB(50, 50, 255))
+            end
+        end
+    else
+        espBaseButton.Text = "ESP Base: OFF"
+        espBaseButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        
+        for obj, highlight in pairs(espHighlights) do
+            if obj:IsA("Part") and (obj.Name:lower():find("base") or obj.Name:lower():find("wall")) then
+                removeESP(obj)
+            end
+        end
+    end
+end
+
+local function toggleGravity()
+    gravityEnabled = not gravityEnabled
+    
+    if gravityEnabled then
+        gravityButton.Text = "Gravity Boost: ON"
+        gravityButton.BackgroundColor3 = Color3.fromRGB(40, 180, 40)
+        workspace.Gravity = 25  -- Low gravity effect
+    else
+        gravityButton.Text = "Gravity Boost: OFF"
+        gravityButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        workspace.Gravity = originalGravity
+    end
+end
+
+local function toggleFloat()
+    floatEnabled = not floatEnabled
+    
+    if floatEnabled then
+        floatButton.Text = "Float: ON"
+        floatButton.BackgroundColor3 = Color3.fromRGB(40, 180, 40)
+        
+        -- Create body velocity for floating
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.Name = "MakalFloat"
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        bodyVelocity.MaxForce = Vector3.new(0, math.huge, 0)
+        bodyVelocity.P = 1000
+        bodyVelocity.Parent = humanoidRootPart
+        
+        -- Float effect
+        spawn(function()
+            while floatEnabled and humanoidRootPart and humanoidRootPart.Parent do
+                bodyVelocity.Velocity = Vector3.new(0, 20, 0)  -- Upward force
+                wait(0.1)
+            end
+        end)
+    else
+        floatButton.Text = "Float: OFF"
+        floatButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        
+        -- Remove float effect
+        if humanoidRootPart:FindFirstChild("MakalFloat") then
+            humanoidRootPart.MakalFloat:Destroy()
+        end
+    end
+end
+
+-- Button events
+gravityButton.MouseButton1Click:Connect(toggleGravity)
+floatButton.MouseButton1Click:Connect(toggleFloat)
+espButton.MouseButton1Click:Connect(togglePlayerESP)
+espBaseButton.MouseButton1Click:Connect(toggleBaseESP)
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+-- Character respawn handling
+player.CharacterAdded:Connect(function(newChar)
+    character = newChar
+    humanoid = newChar:WaitForChild("Humanoid")
+    humanoidRootPart = newChar:WaitForChild("HumanoidRootPart")
+    
+    -- Reapply float if it was enabled
+    if floatEnabled then
+        wait(1)  -- Wait for character to fully load
+        toggleFloat()
+    end
+end)
+
+-- Keybind to open/close GUI (F5)
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.F5 then
+        mainFrame.Visible = not mainFrame.Visible
+    end
+end)
+
+print("MAKAL HUB Loaded! Press F5 to toggle GUI.")
