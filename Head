@@ -1,0 +1,254 @@
+--[[ 
+	R6 RAGDOLL SCRIPT V3.5 (GUI EDITION)
+	⚡ Made by Roblox Hacks 404 & @Username_error1404
+	Original Base: minishakk / Fixed by CS
+	Version: V3.5 — R6 Only, GUI Toggle Version
+]]
+
+local ragSpeed = 6000 -- movement speed multiplier
+local player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+
+-- Core variables
+local isRagdoll = false
+local moveVec = Vector3.zero
+local moveForce = nil
+local renderConn, inputStart, inputEnd
+local savedMotors = {}
+
+-- Prevent animation interference
+local function disableToolAnims()
+	local char = player.Character
+	if not char then return end
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	if not hum then return end
+	local animator = hum:FindFirstChildOfClass("Animator")
+	if not animator then return end
+	animator.AnimationPlayed:Connect(function(track)
+		if track and (track.Animation.AnimationId:match("507766")) then
+			track:Stop()
+		end
+	end)
+end
+
+-- Movement control
+local function startMovement(root)
+	moveForce = Instance.new("BodyForce")
+	moveForce.Force = Vector3.zero
+	moveForce.Parent = root
+
+	renderConn = RunService.RenderStepped:Connect(function()
+		if isRagdoll and workspace.CurrentCamera then
+			local cam = workspace.CurrentCamera
+			local forward = Vector3.new(cam.CFrame.LookVector.X, 0, cam.CFrame.LookVector.Z).Unit
+			local right = Vector3.new(cam.CFrame.RightVector.X, 0, cam.CFrame.RightVector.Z).Unit
+			local dir = (forward * moveVec.Z + right * moveVec.X)
+			if dir.Magnitude > 0 then dir = dir.Unit end
+			moveForce.Force = dir * ragSpeed
+		end
+	end)
+end
+
+local function stopMovement()
+	if renderConn then renderConn:Disconnect() end
+	if moveForce then moveForce:Destroy() end
+	renderConn, moveForce = nil, nil
+end
+
+-- Input for WASD
+local function enableMovement()
+	local char = player.Character
+	if not char then return end
+	local root = char:FindFirstChild("HumanoidRootPart")
+	if root then startMovement(root) end
+
+	inputStart = UIS.InputBegan:Connect(function(i, gpe)
+		if gpe then return end
+		if i.KeyCode == Enum.KeyCode.W then moveVec = Vector3.new(moveVec.X, 0, 1) end
+		if i.KeyCode == Enum.KeyCode.S then moveVec = Vector3.new(moveVec.X, 0, -1) end
+		if i.KeyCode == Enum.KeyCode.A then moveVec = Vector3.new(-1, 0, moveVec.Z) end
+		if i.KeyCode == Enum.KeyCode.D then moveVec = Vector3.new(1, 0, moveVec.Z) end
+	end)
+
+	inputEnd = UIS.InputEnded:Connect(function(i)
+		if i.KeyCode == Enum.KeyCode.W or i.KeyCode == Enum.KeyCode.S then
+			moveVec = Vector3.new(moveVec.X, 0, 0)
+		elseif i.KeyCode == Enum.KeyCode.A or i.KeyCode == Enum.KeyCode.D then
+			moveVec = Vector3.new(0, 0, moveVec.Z)
+		end
+	end)
+end
+
+local function disableMovement()
+	if inputStart then inputStart:Disconnect() end
+	if inputEnd then inputEnd:Disconnect() end
+	stopMovement()
+end
+
+-- Apply ragdoll physics
+local function toRagdoll()
+	if isRagdoll then return end
+	isRagdoll = true
+	local char = player.Character
+	if not char then return end
+	savedMotors = {}
+
+	for _, motor in ipairs(char:GetDescendants()) do
+		if motor:IsA("Motor6D") then
+			table.insert(savedMotors, {
+				Name = motor.Name, Parent = motor.Parent,
+				Part0 = motor.Part0, Part1 = motor.Part1,
+				C0 = motor.C0, C1 = motor.C1
+			})
+			local a0 = Instance.new("Attachment", motor.Part0)
+			a0.Name = "RagdollAttachment0"
+			a0.CFrame = motor.C0
+			local a1 = Instance.new("Attachment", motor.Part1)
+			a1.Name = "RagdollAttachment1"
+			a1.CFrame = motor.C1
+			local c = Instance.new("BallSocketConstraint", motor.Part0)
+			c.Name = "RagdollConstraint"
+			c.Attachment0 = a0
+			c.Attachment1 = a1
+			motor:Destroy()
+		end
+	end
+
+	for _, part in ipairs(char:GetChildren()) do
+		if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+			part.CanCollide = true
+		end
+	end
+
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	if hum then
+		for _, s in ipairs(Enum.HumanoidStateType:GetEnumItems()) do
+			hum:SetStateEnabled(s, false)
+		end
+		hum:ChangeState(Enum.HumanoidStateType.Physics)
+		hum.PlatformStand = true
+	end
+
+	enableMovement()
+end
+
+-- Restore normal humanoid
+local function unRagdoll()
+	if not isRagdoll then return end
+	local char = player.Character
+	if not char then return end
+	isRagdoll = false
+
+	for _, d in ipairs(char:GetDescendants()) do
+		if (d:IsA("BallSocketConstraint") and d.Name == "RagdollConstraint") or
+		   (d:IsA("Attachment") and d.Name:match("RagdollAttachment")) then
+			d:Destroy()
+		end
+	end
+
+	for _, data in ipairs(savedMotors) do
+		local m = Instance.new("Motor6D")
+		m.Name = data.Name
+		m.Part0 = data.Part0
+		m.Part1 = data.Part1
+		m.C0 = data.C0
+		m.C1 = data.C1
+		m.Parent = data.Parent
+	end
+
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	if hum then
+		for _, s in ipairs(Enum.HumanoidStateType:GetEnumItems()) do
+			hum:SetStateEnabled(s, true)
+		end
+		hum:ChangeState(Enum.HumanoidStateType.GettingUp)
+		hum.PlatformStand = false
+	end
+
+	disableMovement()
+end
+
+----------------------------------------------------------
+-- 🧠 GUI SYSTEM
+----------------------------------------------------------
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Main GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "RagdollV3_5"
+gui.ResetOnSpawn = false
+gui.Parent = playerGui
+
+-- Toggle Button (corner)
+local toggle = Instance.new("TextButton")
+toggle.Size = UDim2.new(0, 90, 0, 35)
+toggle.Position = UDim2.new(0, 10, 1, -50)
+toggle.Text = "🧍‍♂️ Ragdoll GUI"
+toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+toggle.TextColor3 = Color3.new(1, 1, 1)
+toggle.Font = Enum.Font.SourceSansBold
+toggle.TextScaled = true
+toggle.Parent = gui
+
+-- Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 220, 0, 130)
+frame.Position = UDim2.new(0.5, -110, 0.5, -65)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.Visible = false
+frame.Parent = gui
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0.3, 0)
+title.Text = "R6 Ragdoll V3.5"
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.SourceSansBold
+title.TextScaled = true
+
+-- Buttons
+local ragButton = Instance.new("TextButton", frame)
+ragButton.Size = UDim2.new(1, -20, 0.3, 0)
+ragButton.Position = UDim2.new(0, 10, 0.3, 5)
+ragButton.Text = "Ragdoll ON"
+ragButton.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
+ragButton.TextColor3 = Color3.new(1, 1, 1)
+ragButton.Font = Enum.Font.SourceSansBold
+ragButton.TextScaled = true
+
+local unragButton = Instance.new("TextButton", frame)
+unragButton.Size = UDim2.new(1, -20, 0.3, 0)
+unragButton.Position = UDim2.new(0, 10, 0.65, 5)
+unragButton.Text = "Stand Up"
+unragButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+unragButton.TextColor3 = Color3.new(1, 1, 1)
+unragButton.Font = Enum.Font.SourceSansBold
+unragButton.TextScaled = true
+
+-- GUI logic
+toggle.MouseButton1Click:Connect(function()
+	frame.Visible = not frame.Visible
+end)
+
+ragButton.MouseButton1Click:Connect(function()
+	if not isRagdoll then
+		toRagdoll()
+		game.StarterGui:SetCore("SendNotification", {
+			Title = "Ragdoll Enabled",
+			Text = "Made by Roblox Hacks 404 & @Username_error1404",
+			Duration = 5
+		})
+	end
+end)
+
+unragButton.MouseButton1Click:Connect(function()
+	if isRagdoll then
+		unRagdoll()
+		game.StarterGui:SetCore("SendNotification", {
+			Title = "Ragdoll Disabled",
+			Text = "Restored to normal.",
+			Duration = 4
+		})
+	end
+end)
