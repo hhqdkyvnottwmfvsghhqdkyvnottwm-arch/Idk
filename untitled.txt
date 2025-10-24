@@ -1,0 +1,433 @@
+-- 🔥 ROBLOX PANEL V4
+-- 🚀 Ultimate Version with Device & Tier Selection
+-- 💀 Made by Roblox hacks 404
+-- 🔧 Full Working - Basic/Premium/VIP Tiers
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local workspace = game:GetService("Workspace")
+
+-- 🔍 Device Detection
+local IS_MOBILE = UserInputService.TouchEnabled
+local IS_PC = UserInputService.MouseEnabled
+
+-- 🔒 AntiCheat Bypass
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local char = player.Character or player.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+-- ⚙️ Version System
+local VERSION_TIER = "Basic" -- Default tier
+local tierFeatures = {
+    Basic = {"Instant", "Range"},
+    Premium = {"Instant", "Range", "Auto"},
+    VIP = {"Instant", "Range", "Auto", "Bypass", "Speed"}
+}
+
+-- 📦 GUI setup V4
+local gui = Instance.new("ScreenGui", playerGui)
+gui.Name = "RobloxPanel_V4"
+gui.ResetOnSpawn = false
+
+local mainFrame = Instance.new("Frame", gui)
+mainFrame.Size = UDim2.new(0, 300, 0, 400)
+mainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+mainFrame.Active = true
+mainFrame.Draggable = true
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 16)
+
+-- 🎨 Title with version info
+local title = Instance.new("TextLabel", mainFrame)
+title.Size = UDim2.new(1, 0, 0, 50)
+title.BackgroundTransparency = 1
+title.Text = "ROBLOX PANEL V4"
+title.Font = Enum.Font.GothamBlack
+title.TextSize = 24
+title.TextColor3 = Color3.fromRGB(0, 255, 255)
+
+local subtitle = Instance.new("TextLabel", mainFrame)
+subtitle.Size = UDim2.new(1, 0, 0, 25)
+subtitle.Position = UDim2.new(0, 0, 0, 45)
+subtitle.BackgroundTransparency = 1
+subtitle.Text = "Device: " .. (IS_MOBILE and "Mobile" or "PC") .. " | Tier: " .. VERSION_TIER
+subtitle.Font = Enum.Font.GothamBold
+subtitle.TextSize = 12
+subtitle.TextColor3 = Color3.fromRGB(100, 255, 200)
+
+-- 🔘 Device Selection Frame
+local deviceFrame = Instance.new("Frame", mainFrame)
+deviceFrame.Size = UDim2.new(0.9, 0, 0, 60)
+deviceFrame.Position = UDim2.new(0.05, 0, 0, 80)
+deviceFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Instance.new("UICorner", deviceFrame).CornerRadius = UDim.new(0, 8)
+
+local deviceLabel = Instance.new("TextLabel", deviceFrame)
+deviceLabel.Size = UDim2.new(1, 0, 0, 25)
+deviceLabel.BackgroundTransparency = 1
+deviceLabel.Text = "Select Device:"
+deviceLabel.Font = Enum.Font.GothamBold
+deviceLabel.TextSize = 14
+deviceLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local mobileBtn = Instance.new("TextButton", deviceFrame)
+mobileBtn.Size = UDim2.new(0.45, 0, 0, 25)
+mobileBtn.Position = UDim2.new(0.025, 0, 0, 30)
+mobileBtn.BackgroundColor3 = IS_MOBILE and Color3.fromRGB(0, 150, 255) or Color3.fromRGB(60, 60, 60)
+mobileBtn.Text = "Mobile"
+mobileBtn.Font = Enum.Font.Gotham
+mobileBtn.TextSize = 12
+mobileBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+Instance.new("UICorner", mobileBtn).CornerRadius = UDim.new(0, 6)
+
+local pcBtn = Instance.new("TextButton", deviceFrame)
+pcBtn.Size = UDim2.new(0.45, 0, 0, 25)
+pcBtn.Position = UDim2.new(0.525, 0, 0, 30)
+pcBtn.BackgroundColor3 = IS_PC and Color3.fromRGB(0, 150, 255) or Color3.fromRGB(60, 60, 60)
+pcBtn.Text = "PC"
+pcBtn.Font = Enum.Font.Gotham
+pcBtn.TextSize = 12
+pcBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+Instance.new("UICorner", pcBtn).CornerRadius = UDim.new(0, 6)
+
+-- 🏆 Version Selection Frame
+local versionFrame = Instance.new("Frame", mainFrame)
+versionFrame.Size = UDim2.new(0.9, 0, 0, 100)
+versionFrame.Position = UDim2.new(0.05, 0, 0, 155)
+versionFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Instance.new("UICorner", versionFrame).CornerRadius = UDim.new(0, 8)
+
+local versionLabel = Instance.new("TextLabel", versionFrame)
+versionLabel.Size = UDim2.new(1, 0, 0, 25)
+versionLabel.BackgroundTransparency = 1
+versionLabel.Text = "Select Version Tier:"
+versionLabel.Font = Enum.Font.GothamBold
+versionLabel.TextSize = 14
+versionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local basicBtn = Instance.new("TextButton", versionFrame)
+basicBtn.Size = UDim2.new(0.9, 0, 0, 20)
+basicBtn.Position = UDim2.new(0.05, 0, 0, 30)
+basicBtn.BackgroundColor3 = VERSION_TIER == "Basic" and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(60, 60, 60)
+basicBtn.Text = "Basic - Instant, Range"
+basicBtn.Font = Enum.Font.Gotham
+basicBtn.TextSize = 11
+basicBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+Instance.new("UICorner", basicBtn).CornerRadius = UDim.new(0, 4)
+
+local premiumBtn = Instance.new("TextButton", versionFrame)
+premiumBtn.Size = UDim2.new(0.9, 0, 0, 20)
+premiumBtn.Position = UDim2.new(0.05, 0, 0, 55)
+premiumBtn.BackgroundColor3 = VERSION_TIER == "Premium" and Color3.fromRGB(0, 150, 255) or Color3.fromRGB(60, 60, 60)
+premiumBtn.Text = "Premium - +Auto Click"
+premiumBtn.Font = Enum.Font.Gotham
+premiumBtn.TextSize = 11
+premiumBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+Instance.new("UICorner", premiumBtn).CornerRadius = UDim.new(0, 4)
+
+local vipBtn = Instance.new("TextButton", versionFrame)
+vipBtn.Size = UDim2.new(0.9, 0, 0, 20)
+vipBtn.Position = UDim2.new(0.05, 0, 0, 80)
+vipBtn.BackgroundColor3 = VERSION_TIER == "VIP" and Color3.fromRGB(255, 100, 0) or Color3.fromRGB(60, 60, 60)
+vipBtn.Text = "VIP - +Bypass, Speed"
+vipBtn.Font = Enum.Font.Gotham
+vipBtn.TextSize = 11
+vipBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+Instance.new("UICorner", vipBtn).CornerRadius = UDim.new(0, 4)
+
+-- ⚙️ Features Frame
+local featuresFrame = Instance.new("Frame", mainFrame)
+featuresFrame.Size = UDim2.new(0.9, 0, 0, 150)
+featuresFrame.Position = UDim2.new(0.05, 0, 0, 270)
+featuresFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Instance.new("UICorner", featuresFrame).CornerRadius = UDim.new(0, 8)
+
+local featuresLabel = Instance.new("TextLabel", featuresFrame)
+featuresLabel.Size = UDim2.new(1, 0, 0, 25)
+featuresLabel.BackgroundTransparency = 1
+featuresLabel.Text = "Active Features:"
+featuresLabel.Font = Enum.Font.GothamBold
+featuresLabel.TextSize = 14
+featuresLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- ⚙️ State V4
+local toggleStates = {
+    Instant = false, 
+    Auto = false, 
+    Range = false, 
+    Bypass = false,
+    Speed = false
+}
+local originalRange = {}
+local originalHold = {}
+local originalSpeed = 16
+local autoThread
+
+-- 🔒 Enhanced AntiCheat Bypass V4
+local function safeFirePrompt(prompt)
+    if not prompt or not prompt.Enabled then return end
+    
+    local success, result = pcall(function()
+        fireproximityprompt(prompt)
+        
+        if prompt.Triggered then
+            prompt:InputHoldBegin()
+            task.wait(0.01)
+            prompt:InputHoldEnd()
+        end
+    end)
+end
+
+-- 🧱 Advanced distance calculation V4
+local function getPromptPosition(prompt)
+    if not prompt or not prompt.Parent then return nil end
+    
+    local success, position = pcall(function()
+        if prompt.Parent:IsA("BasePart") then
+            return prompt.Parent.Position
+        elseif prompt.Parent:IsA("Attachment") then
+            return prompt.Parent.WorldPosition
+        elseif prompt.Parent:IsA("Model") then
+            local primary = prompt.Parent.PrimaryPart or prompt.Parent:FindFirstChildWhichIsA("BasePart")
+            return primary and primary.Position or prompt.Parent:GetPivot().Position
+        end
+        return nil
+    end)
+    
+    return success and position or (hrp and hrp.Position or Vector3.new(0, 0, 0))
+end
+
+-- ⚡ Toggle Creation V4
+local toggleInstances = {}
+local function createToggle(name, yPos, description)
+    local toggleFrame = Instance.new("Frame", featuresFrame)
+    toggleFrame.Size = UDim2.new(1, -20, 0, 25)
+    toggleFrame.Position = UDim2.new(0, 10, 0, yPos)
+    toggleFrame.BackgroundTransparency = 1
+    
+    local label = Instance.new("TextLabel", toggleFrame)
+    label.Size = UDim2.new(0.6, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = name
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 12
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local toggle = Instance.new("Frame", toggleFrame)
+    toggle.Size = UDim2.new(0, 50, 0, 25)
+    toggle.Position = UDim2.new(1, -50, 0, 0)
+    toggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    Instance.new("UICorner", toggle).CornerRadius = UDim.new(1, 0)
+
+    local circle = Instance.new("Frame", toggle)
+    circle.Size = UDim2.new(0, 21, 0, 21)
+    circle.Position = UDim2.new(0, 2, 0, 2)
+    circle.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    Instance.new("UICorner", circle).CornerRadius = UDim.new(1, 0)
+
+    toggle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            local newState = not toggleStates[name]
+            toggleStates[name] = newState
+            
+            -- Animation
+            if newState then
+                TweenService:Create(toggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 200, 100)}):Play()
+                TweenService:Create(circle, TweenInfo.new(0.2), {Position = UDim2.new(1, -23, 0, 2), BackgroundColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+            else
+                TweenService:Create(toggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+                TweenService:Create(circle, TweenInfo.new(0.2), {Position = UDim2.new(0, 2, 0, 2), BackgroundColor3 = Color3.fromRGB(200, 0, 0)}):Play()
+            end
+            
+            -- Functionality
+            if name == "Instant" then
+                for _, v in pairs(workspace:GetDescendants()) do
+                    if v:IsA("ProximityPrompt") then
+                        if newState then
+                            originalHold[v] = v.HoldDuration
+                            v.HoldDuration = 0
+                        else
+                            if originalHold[v] then
+                                v.HoldDuration = originalHold[v]
+                                originalHold[v] = nil
+                            end
+                        end
+                    end
+                end
+            elseif name == "Range" then
+                for _, v in pairs(workspace:GetDescendants()) do
+                    if v:IsA("ProximityPrompt") then
+                        if newState then
+                            originalRange[v] = v.MaxActivationDistance
+                            v.MaxActivationDistance = 2000
+                        else
+                            if originalRange[v] then
+                                v.MaxActivationDistance = originalRange[v]
+                                originalRange[v] = nil
+                            end
+                        end
+                    end
+                end
+            elseif name == "Auto" then
+                if newState then
+                    autoThread = task.spawn(function()
+                        while toggleStates["Auto"] do
+                            task.wait(0.15)
+                            for _, v in pairs(workspace:GetDescendants()) do
+                                if v:IsA("ProximityPrompt") and v.Enabled then
+                                    local pos = getPromptPosition(v)
+                                    if pos and hrp then
+                                        local dist = (hrp.Position - pos).Magnitude
+                                        if dist <= (toggleStates["Range"] and 2000 or v.MaxActivationDistance) then
+                                            safeFirePrompt(v)
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end)
+                else
+                    if autoThread then
+                        task.cancel(autoThread)
+                        autoThread = nil
+                    end
+                end
+            elseif name == "Bypass" then
+                if newState then
+                    for _, v in pairs(workspace:GetDescendants()) do
+                        if v:IsA("ProximityPrompt") then
+                            pcall(function()
+                                v.RequiresLineOfSight = false
+                            end)
+                        end
+                    end
+                end
+            elseif name == "Speed" then
+                if newState then
+                    originalSpeed = char.Humanoid.WalkSpeed
+                    char.Humanoid.WalkSpeed = 50
+                else
+                    char.Humanoid.WalkSpeed = originalSpeed
+                end
+            end
+        end
+    end)
+    
+    toggleInstances[name] = {frame = toggleFrame, toggle = toggle, circle = circle}
+end
+
+-- 🔄 Update Toggles Based on Tier
+local function updateTierFeatures()
+    -- Hide all toggles first
+    for name, instance in pairs(toggleInstances) do
+        instance.frame.Visible = false
+    end
+    
+    -- Show only available features for current tier
+    local features = tierFeatures[VERSION_TIER]
+    if features then
+        for i, feature in ipairs(features) do
+            if toggleInstances[feature] then
+                toggleInstances[feature].frame.Visible = true
+                toggleInstances[feature].frame.Position = UDim2.new(0, 10, 0, 25 + (i * 25))
+            end
+        end
+    end
+    
+    -- Update subtitle
+    subtitle.Text = "Device: " .. (IS_MOBILE and "Mobile" : "PC") .. " | Tier: " .. VERSION_TIER
+end
+
+-- 🎯 Button Handlers
+mobileBtn.MouseButton1Click:Connect(function()
+    IS_MOBILE = true
+    IS_PC = false
+    mobileBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+    pcBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    subtitle.Text = "Device: Mobile | Tier: " .. VERSION_TIER
+end)
+
+pcBtn.MouseButton1Click:Connect(function()
+    IS_PC = true
+    IS_MOBILE = false
+    pcBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+    mobileBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    subtitle.Text = "Device: PC | Tier: " .. VERSION_TIER
+end)
+
+basicBtn.MouseButton1Click:Connect(function()
+    VERSION_TIER = "Basic"
+    basicBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+    premiumBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    vipBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    updateTierFeatures()
+end)
+
+premiumBtn.MouseButton1Click:Connect(function()
+    VERSION_TIER = "Premium"
+    premiumBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+    basicBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    vipBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    updateTierFeatures()
+end)
+
+vipBtn.MouseButton1Click:Connect(function()
+    VERSION_TIER = "VIP"
+    vipBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
+    basicBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    premiumBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    updateTierFeatures()
+end)
+
+-- 🎮 Create all toggles (initially hidden)
+createToggle("Instant", 30, "No hold duration")
+createToggle("Auto", 55, "Auto-click prompts")
+createToggle("Range", 80, "Extended range")
+createToggle("Bypass", 105, "AntiCheat bypass")
+createToggle("Speed", 130, "Speed boost")
+
+-- 🔧 Initialize with Basic tier
+updateTierFeatures()
+
+-- 🧩 Enhanced descendant tracking V4
+workspace.DescendantAdded:Connect(function(obj)
+    if obj:IsA("ProximityPrompt") then
+        if toggleStates["Instant"] then 
+            originalHold[obj] = obj.HoldDuration
+            obj.HoldDuration = 0 
+        end
+        if toggleStates["Range"] then 
+            originalRange[obj] = obj.MaxActivationDistance
+            obj.MaxActivationDistance = 2000 
+        end
+        if toggleStates["Bypass"] then
+            pcall(function()
+                obj.RequiresLineOfSight = false
+            end)
+        end
+    end
+end)
+
+-- 🔄 Character handling
+player.CharacterAdded:Connect(function(newChar)
+    char = newChar
+    hrp = newChar:WaitForChild("HumanoidRootPart")
+    
+    -- Restore speed if it was enabled
+    if toggleStates["Speed"] then
+        task.wait(1)
+        char.Humanoid.WalkSpeed = 50
+    end
+end)
+
+-- 💀 V4 Signature
+warn("=== ROBLOX PANEL V4 LOADED ===")
+warn("Device: " .. (IS_MOBILE and "Mobile" or "PC"))
+warn("Tier: " .. VERSION_TIER)
+warn("Made by Roblox hacks 404")
+warn("Full Working - Basic/Premium/VIP System")
+warn("=================================")
