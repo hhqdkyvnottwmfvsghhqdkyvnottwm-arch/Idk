@@ -1,0 +1,464 @@
+-- Roblox Simple V2.0 - Enhanced Version
+-- Updated and improved by Roblox Hacks 404
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+
+-- Security check
+if not player then
+    return
+end
+
+-- Create main GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SimpleGuiV2"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Enhanced intro sequence
+local function createIntro()
+    local introContainer = Instance.new("Frame", ScreenGui)
+    introContainer.Size = UDim2.new(1, 0, 1, 0)
+    introContainer.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    introContainer.BackgroundTransparency = 0
+    introContainer.ZIndex = 100
+    
+    local intro = Instance.new("TextLabel", introContainer)
+    intro.Size = UDim2.new(0.6, 0, 0.15, 0)
+    intro.Position = UDim2.new(0.2, 0, 0.4, 0)
+    intro.BackgroundTransparency = 1
+    intro.Text = "Roblox Simple V2.0"
+    intro.Font = Enum.Font.GothamBlack
+    intro.TextColor3 = Color3.fromRGB(255, 165, 0)
+    intro.TextScaled = true
+    intro.ZIndex = 101
+    
+    local subText = Instance.new("TextLabel", introContainer)
+    subText.Size = UDim2.new(0.4, 0, 0.1, 0)
+    subText.Position = UDim2.new(0.3, 0, 0.55, 0)
+    subText.BackgroundTransparency = 1
+    subText.Text = "Enhanced Version"
+    subText.Font = Enum.Font.GothamBold
+    subText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    subText.TextScaled = true
+    subText.ZIndex = 101
+    subText.TextTransparency = 1
+    
+    -- Animate intro
+    TweenService:Create(intro, TweenInfo.new(1.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+        TextTransparency = 0,
+        Position = UDim2.new(0.2, 0, 0.35, 0)
+    }):Play()
+    
+    task.wait(1)
+    
+    TweenService:Create(subText, TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        TextTransparency = 0
+    }):Play()
+    
+    task.wait(2)
+    
+    -- Fade out intro
+    local fadeOut = TweenService:Create(introContainer, TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        BackgroundTransparency = 1
+    })
+    
+    TweenService:Create(intro, TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        TextTransparency = 1
+    }):Play()
+    
+    TweenService:Create(subText, TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        TextTransparency = 1
+    }):Play()
+    
+    fadeOut:Play()
+    fadeOut.Completed:Wait()
+    introContainer:Destroy()
+end
+
+-- Enhanced main frame with modern design
+local frame = Instance.new("Frame", ScreenGui)
+frame.Size = UDim2.new(0, 600, 0, 450)
+frame.Position = UDim2.new(0.5, -300, 0.5, -225)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Visible = false
+
+-- Add rounded corners
+local corner = Instance.new("UICorner", frame)
+corner.CornerRadius = UDim.new(0, 12)
+
+-- Add subtle shadow effect
+local shadow = Instance.new("ImageLabel", frame)
+shadow.Name = "Shadow"
+shadow.Size = UDim2.new(1, 10, 1, 10)
+shadow.Position = UDim2.new(0, -5, 0, -5)
+shadow.BackgroundTransparency = 1
+shadow.Image = "rbxassetid://1316045217"
+shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+shadow.ImageTransparency = 0.8
+shadow.ScaleType = Enum.ScaleType.Slice
+shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+shadow.ZIndex = -1
+
+-- Enhanced title bar
+local titleBar = Instance.new("Frame", frame)
+titleBar.Size = UDim2.new(1, 0, 0, 45)
+titleBar.BackgroundColor3 = Color3.fromRGB(255, 105, 0)
+titleBar.BorderSizePixel = 0
+
+local titleCorner = Instance.new("UICorner", titleBar)
+titleCorner.CornerRadius = UDim.new(0, 12, 0, 0)
+
+local title = Instance.new("TextLabel", titleBar)
+title.Size = UDim2.new(1, -40, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "ROBLOX SIMPLE V2.0"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.GothamBlack
+title.TextScaled = true
+title.TextXAlignment = Enum.TextXAlignment.Left
+
+local closeBtn = Instance.new("TextButton", titleBar)
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -35, 0.5, -15)
+closeBtn.BackgroundColor3 = Color3.fromRGB(220, 80, 60)
+closeBtn.Text = "X"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextColor3 = Color3.new(1, 1, 1)
+closeBtn.TextScaled = true
+
+local closeCorner = Instance.new("UICorner", closeBtn)
+closeCorner.CornerRadius = UDim.new(0, 6)
+
+-- Enhanced tabs system
+local tabNames = {"Basics", "Trolling", "Hubs", "Settings"}
+local pages = {}
+
+local tabBar = Instance.new("Frame", frame)
+tabBar.Size = UDim2.new(1, 0, 0, 40)
+tabBar.Position = UDim2.new(0, 0, 0, 45)
+tabBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+
+-- Function to create scrolling frame
+local function createScrollingFrame(parent)
+    local scrollFrame = Instance.new("ScrollingFrame", parent)
+    scrollFrame.Size = UDim2.new(1, 0, 1, 0)
+    scrollFrame.BackgroundTransparency = 1
+    scrollFrame.BorderSizePixel = 0
+    scrollFrame.ScrollBarThickness = 6
+    scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 140, 0)
+    
+    local uiListLayout = Instance.new("UIListLayout", scrollFrame)
+    uiListLayout.Padding = UDim.new(0, 10)
+    uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    
+    return scrollFrame
+end
+
+-- Create tabs and pages
+for i, tabName in ipairs(tabNames) do
+    local tab = Instance.new("TextButton", tabBar)
+    tab.Size = UDim2.new(1/#tabNames, 0, 1, 0)
+    tab.Position = UDim2.new((i-1)/#tabNames, 0, 0, 0)
+    tab.Text = tabName
+    tab.Font = Enum.Font.GothamSemibold
+    tab.TextColor3 = Color3.new(1, 1, 1)
+    tab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    tab.TextScaled = true
+    tab.BorderSizePixel = 0
+
+    local page = Instance.new("Frame", frame)
+    page.Size = UDim2.new(1, 0, 1, -85)
+    page.Position = UDim2.new(0, 0, 0, 85)
+    page.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    page.Visible = (i == 1)
+    page.BorderSizePixel = 0
+    
+    local pageCorner = Instance.new("UICorner", page)
+    pageCorner.CornerRadius = UDim.new(0, 0, 0, 12)
+
+    local scrollFrame = createScrollingFrame(page)
+    pages[tabName] = scrollFrame
+
+    -- Enhanced tab hover effects
+    tab.MouseEnter:Connect(function()
+        if not page.Visible then
+            TweenService:Create(tab, TweenInfo.new(0.2), {
+                BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+            }):Play()
+        end
+    end)
+    
+    tab.MouseLeave:Connect(function()
+        if not page.Visible then
+            TweenService:Create(tab, TweenInfo.new(0.2), {
+                BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            }):Play()
+        end
+    end)
+    
+    tab.MouseButton1Click:Connect(function()
+        for _, p in pairs(pages) do 
+            p.Parent.Visible = false 
+        end
+        page.Visible = true
+        
+        -- Update tab colors
+        for _, t in ipairs(tabBar:GetChildren()) do
+            if t:IsA("TextButton") then
+                TweenService:Create(t, TweenInfo.new(0.2), {
+                    BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                }):Play()
+            end
+        end
+        
+        TweenService:Create(tab, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(255, 105, 0)
+        }):Play()
+    end)
+    
+    -- Set first tab as active
+    if i == 1 then
+        tab.BackgroundColor3 = Color3.fromRGB(255, 105, 0)
+    end
+end
+
+-- Enhanced button creation function
+local function createEnhancedButton(parent, name, description, scriptCode, isExternal, hasInput)
+    local buttonContainer = Instance.new("Frame", parent)
+    buttonContainer.Size = UDim2.new(0.95, 0, 0, 70)
+    buttonContainer.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    buttonContainer.BorderSizePixel = 0
+    
+    local buttonCorner = Instance.new("UICorner", buttonContainer)
+    buttonCorner.CornerRadius = UDim.new(0, 8)
+    
+    local btn = Instance.new("TextButton", buttonContainer)
+    btn.Size = UDim2.new(1, 0, 0.6, 0)
+    btn.Position = UDim2.new(0, 0, 0, 0)
+    btn.Text = name
+    btn.Font = Enum.Font.GothamBold
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.BackgroundTransparency = 1
+    btn.TextScaled = true
+    btn.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local desc = Instance.new("TextLabel", buttonContainer)
+    desc.Size = UDim2.new(1, -10, 0.4, 0)
+    desc.Position = UDim2.new(0, 10, 0.6, 0)
+    desc.Text = description or "Click to execute"
+    desc.Font = Enum.Font.Gotham
+    desc.TextColor3 = Color3.fromRGB(200, 200, 200)
+    desc.BackgroundTransparency = 1
+    desc.TextScaled = true
+    desc.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local input
+    if hasInput then
+        input = Instance.new("TextBox", buttonContainer)
+        input.Size = UDim2.new(0.3, 0, 0.6, -10)
+        input.Position = UDim2.new(0.7, 0, 0.2, 0)
+        input.PlaceholderText = "Enter value"
+        input.Text = ""
+        input.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        input.TextColor3 = Color3.new(1, 1, 1)
+        input.Font = Enum.Font.Gotham
+        input.TextScaled = true
+        input.BorderSizePixel = 0
+        
+        local inputCorner = Instance.new("UICorner", input)
+        inputCorner.CornerRadius = UDim.new(0, 4)
+    end
+    
+    -- Button hover effects
+    btn.MouseEnter:Connect(function()
+        TweenService:Create(buttonContainer, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(65, 65, 65)
+        }):Play()
+    end)
+    
+    btn.MouseLeave:Connect(function()
+        TweenService:Create(buttonContainer, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        }):Play()
+    end)
+    
+    btn.MouseButton1Click:Connect(function()
+        TweenService:Create(buttonContainer, TweenInfo.new(0.1), {
+            BackgroundColor3 = Color3.fromRGB(255, 105, 0)
+        }):Play()
+        
+        task.wait(0.1)
+        
+        TweenService:Create(buttonContainer, TweenInfo.new(0.1), {
+            BackgroundColor3 = Color3.fromRGB(65, 65, 65)
+        }):Play()
+        
+        -- Execute script
+        local success, errorMsg = pcall(function()
+            if hasInput and input then
+                local val = tonumber(input.Text)
+                if val then
+                    loadstring(scriptCode:gsub("{{val}}", tostring(val)))()
+                else
+                    warn("Invalid input value")
+                end
+            else
+                if isExternal then
+                    loadstring(game:HttpGet(scriptCode))()
+                else
+                    loadstring(scriptCode)()
+                end
+            end
+        end)
+        
+        if not success then
+            warn("Script execution failed: " .. tostring(errorMsg))
+        end
+    end)
+    
+    return buttonContainer
+end
+
+-- Add buttons to tabs
+-- Basics Tab
+createEnhancedButton(pages["Basics"], "Fly GUI V3", "Advanced flying script with GUI", "https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt", true)
+createEnhancedButton(pages["Basics"], "Speed Hack", "Increase your movement speed", [[
+local humanoid = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+if humanoid then
+    humanoid.WalkSpeed = {{val}}
+end
+]], false, true)
+createEnhancedButton(pages["Basics"], "Jump Power", "Super jump ability", [[
+local char = game.Players.LocalPlayer.Character
+if char then
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid.JumpPower = {{val}}
+    end
+end
+]], false, true)
+createEnhancedButton(pages["Basics"], "Noclip", "Walk through walls", [[
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+    
+for _, part in pairs(character:GetDescendants()) do
+    if part:IsA("BasePart") then
+        part.CanCollide = false
+    end
+end
+]])
+
+-- Trolling Tab
+createEnhancedButton(pages["Trolling"], "Punch Fling", "Fling players with punches", "https://scriptblox.com/script/Universal-Script-punch-fling-actually-works-unlike-others-25569", true)
+createEnhancedButton(pages["Trolling"], "Jerk Off Tool", "Trolling tool", "https://pastefy.app/YZoglOyJ/raw", true)
+createEnhancedButton(pages["Trolling"], "Neko Script", "Anime neko features", "https://raw.githubusercontent.com/Gazer-Ha/Neko-v1/main/Extremely%20Broken", true)
+
+-- Hubs Tab
+createEnhancedButton(pages["Hubs"], "Trolling GUI V5", "Advanced trolling hub", "https://pastefy.app/rmdi1m55/raw", true)
+createEnhancedButton(pages["Hubs"], "Unknown Hub", "Multi-game script hub", "https://pastebin.com/raw/tvZ99LCQ", true)
+createEnhancedButton(pages["Hubs"], "Lazy Hub", "Universal script loader", "https://raw.githubusercontent.com/LioK251/RbScripts/main/loader.lua", true)
+createEnhancedButton(pages["Hubs"], "Ghost Hub", "Ban hammer and ghost features", "https://rawscripts.net/raw/Universal-Script-GhostHub-16534", true)
+
+-- Settings Tab
+createEnhancedButton(pages["Settings"], "Hide GUI", "Toggle GUI visibility", [[
+game.Players.LocalPlayer.PlayerGui.SimpleGuiV2.Enabled = not game.Players.LocalPlayer.PlayerGui.SimpleGuiV2.Enabled
+]])
+createEnhancedButton(pages["Settings"], "Reset Character", "Respawn your character", [[
+game.Players.LocalPlayer.Character:BreakJoints()
+]])
+
+-- Close button functionality
+closeBtn.MouseButton1Click:Connect(function()
+    TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+        Size = UDim2.new(0, 0, 0, 0),
+        Position = UDim2.new(0.5, 0, 0.5, 0)
+    }):Play()
+    
+    task.wait(0.3)
+    ScreenGui:Destroy()
+end)
+
+-- Enhanced toggle functionality
+local guiVisible = false
+UserInputService.InputBegan:Connect(function(key, gameProcessed)
+    if gameProcessed then return end
+    
+    if key.KeyCode == Enum.KeyCode.RightShift then
+        guiVisible = not guiVisible
+        
+        if guiVisible and not frame.Visible then
+            frame.Visible = true
+            frame.Size = UDim2.new(0, 0, 0, 0)
+            frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+            
+            TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 600, 0, 450),
+                Position = UDim2.new(0.5, -300, 0.5, -225)
+            }):Play()
+        elseif not guiVisible and frame.Visible then
+            TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+                Size = UDim2.new(0, 0, 0, 0),
+                Position = UDim2.new(0.5, 0, 0.5, 0)
+            }):Play()
+            
+            task.wait(0.3)
+            frame.Visible = false
+        end
+    end
+end)
+
+-- Initialize
+coroutine.wrap(createIntro)()
+task.wait(4)
+guiVisible = true
+frame.Visible = true
+frame.Size = UDim2.new(0, 0, 0, 0)
+frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+
+TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+    Size = UDim2.new(0, 600, 0, 450),
+    Position = UDim2.new(0.5, -300, 0.5, -225)
+}):Play()
+
+-- Notification function
+local function notify(message)
+    local notif = Instance.new("TextLabel", ScreenGui)
+    notif.Size = UDim2.new(0, 300, 0, 60)
+    notif.Position = UDim2.new(1, 10, 1, -70)
+    notif.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    notif.TextColor3 = Color3.new(1, 1, 1)
+    notif.Text = message
+    notif.Font = Enum.Font.Gotham
+    notif.TextScaled = true
+    notif.BorderSizePixel = 0
+    
+    local notifCorner = Instance.new("UICorner", notif)
+    notifCorner.CornerRadius = UDim.new(0, 8)
+    
+    TweenService:Create(notif, TweenInfo.new(0.3), {
+        Position = UDim2.new(1, -310, 1, -70)
+    }):Play()
+    
+    task.wait(3)
+    
+    TweenService:Create(notif, TweenInfo.new(0.3), {
+        Position = UDim2.new(1, 10, 1, -70)
+    }):Play()
+    
+    task.wait(0.3)
+    notif:Destroy()
+end
+
+-- Initial notification
+coroutine.wrap(function()
+    task.wait(1)
+    notify("Roblox Simple V2.0 Loaded! Press RightShift to toggle")
+end)()
