@@ -1,0 +1,210 @@
+-- 🌟 Don't Wake the Brainrots - Mini GUI V3 🌟
+-- ✨ Made by Roblox Hacks 404 ✨
+-- Features: Set Point + Teleport Back + Draggable + Toggle (G)
+-- Paste this into a LocalScript inside StarterGui
+
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Create GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "BrainrotMiniGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+-- Main Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 240, 0, 210)
+frame.Position = UDim2.new(0, 30, 0.5, -105)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+frame.BorderSizePixel = 0
+frame.Visible = true
+frame.Parent = screenGui
+
+-- Rounding
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 14)
+corner.Parent = frame
+
+-- Drop shadow
+local shadow = Instance.new("ImageLabel")
+shadow.Image = "rbxassetid://1316045217"
+shadow.ImageColor3 = Color3.new(0, 0, 0)
+shadow.ImageTransparency = 0.5
+shadow.ScaleType = Enum.ScaleType.Slice
+shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+shadow.Size = UDim2.new(1, 20, 1, 20)
+shadow.Position = UDim2.new(0, -10, 0, -10)
+shadow.ZIndex = -1
+shadow.Parent = frame
+
+-- Title Bar
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 32)
+titleBar.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = frame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 14)
+titleCorner.Parent = titleBar
+
+-- Title Text
+local title = Instance.new("TextLabel")
+title.Text = "🌟 Don't Wake the Brainrots 🌟"
+title.Size = UDim2.new(1, 0, 1, 0)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255, 215, 100)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
+title.Parent = titleBar
+
+-- Status Labels
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Text = "No point set"
+statusLabel.Size = UDim2.new(1, -20, 0, 20)
+statusLabel.Position = UDim2.new(0, 10, 0, 40)
+statusLabel.BackgroundTransparency = 1
+statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.TextSize = 14
+statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+statusLabel.Parent = frame
+
+local coordsLabel = Instance.new("TextLabel")
+coordsLabel.Text = "X: -, Y: -, Z: -"
+coordsLabel.Size = UDim2.new(1, -20, 0, 20)
+coordsLabel.Position = UDim2.new(0, 10, 0, 60)
+coordsLabel.BackgroundTransparency = 1
+coordsLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+coordsLabel.Font = Enum.Font.Gotham
+coordsLabel.TextSize = 12
+coordsLabel.TextXAlignment = Enum.TextXAlignment.Left
+coordsLabel.Parent = frame
+
+-- Buttons
+local setButton = Instance.new("TextButton")
+setButton.Text = "Set Point"
+setButton.Size = UDim2.new(1, -20, 0, 40)
+setButton.Position = UDim2.new(0, 10, 0, 90)
+setButton.BackgroundColor3 = Color3.fromRGB(70, 120, 200)
+setButton.TextColor3 = Color3.new(1, 1, 1)
+setButton.Font = Enum.Font.GothamSemibold
+setButton.TextSize = 16
+setButton.Parent = frame
+Instance.new("UICorner", setButton).CornerRadius = UDim.new(0, 8)
+
+local tpButton = Instance.new("TextButton")
+tpButton.Text = "Teleport To Point"
+tpButton.Size = UDim2.new(1, -20, 0, 40)
+tpButton.Position = UDim2.new(0, 10, 0, 140)
+tpButton.BackgroundColor3 = Color3.fromRGB(200, 100, 70)
+tpButton.TextColor3 = Color3.new(1, 1, 1)
+tpButton.Font = Enum.Font.GothamSemibold
+tpButton.TextSize = 16
+tpButton.Parent = frame
+Instance.new("UICorner", tpButton).CornerRadius = UDim.new(0, 8)
+
+-- Variables
+local savedPosition = nil
+local guiVisible = true
+
+-- Update coords display
+local function updateCoords()
+	if savedPosition then
+		coordsLabel.Text = string.format("X: %d, Y: %d, Z: %d",
+			math.floor(savedPosition.X),
+			math.floor(savedPosition.Y),
+			math.floor(savedPosition.Z))
+	else
+		coordsLabel.Text = "X: -, Y: -, Z: -"
+	end
+end
+
+-- Save position
+setButton.MouseButton1Click:Connect(function()
+	local char = player.Character or player.CharacterAdded:Wait()
+	local hrp = char:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+
+	savedPosition = hrp.Position
+	statusLabel.Text = "Point saved!"
+	statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+	setButton.Text = "✓ Saved!"
+	updateCoords()
+
+	task.delay(2, function()
+		setButton.Text = "Set Point"
+		statusLabel.Text = "Ready to teleport"
+		statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+	end)
+end)
+
+-- Teleport to saved position
+tpButton.MouseButton1Click:Connect(function()
+	if not savedPosition then
+		tpButton.Text = "No Point Set!"
+		statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+		task.delay(2, function()
+			tpButton.Text = "Teleport To Point"
+			statusLabel.Text = "No point set"
+			statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+		end)
+		return
+	end
+
+	local char = player.Character or player.CharacterAdded:Wait()
+	local hrp = char:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+
+	hrp.CFrame = CFrame.new(savedPosition + Vector3.new(0, 3, 0))
+	tpButton.Text = "Teleported!"
+	task.delay(1.5, function()
+		tpButton.Text = "Teleport To Point"
+	end)
+end)
+
+-- Make GUI draggable
+local dragging, dragInput, dragStart, startPos
+
+local function updateDrag(input)
+	local delta = input.Position - dragStart
+	frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+		startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+titleBar.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = frame.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+titleBar.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+UIS.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		updateDrag(input)
+	end
+end)
+
+-- Toggle GUI visibility with [G]
+UIS.InputBegan:Connect(function(input, gp)
+	if gp then return end
+	if input.KeyCode == Enum.KeyCode.G then
+		guiVisible = not guiVisible
+		frame.Visible = guiVisible
+	end
+end)
