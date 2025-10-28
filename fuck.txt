@@ -1,0 +1,520 @@
+-- RobloxHub | Build a Plane Script
+-- Made by RobloxHub Team
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local AutoFarm = false
+local AutoBuyItems = false
+local AutoBloodMoon = false
+local AutoAurora = false
+
+-- Create Window
+local Window = Rayfield:CreateWindow({
+    Name = "RobloxHub | Build a Plane",
+    LoadingTitle = "RobloxHub - Build a Plane",
+    LoadingSubtitle = "Loading Premium Features...",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "RobloxHub_BABFT",
+        FileName = "RobloxHub_Config"
+    },
+    Discord = {
+        Enabled = false
+    },
+    KeySystem = false
+})
+
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Lighting = game:GetService("Lighting")
+local TweenService = game:GetService("TweenService")
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+
+local player = Players.LocalPlayer
+
+-- Main Tab
+local MainTab = Window:CreateTab("Main", 4483362458)
+
+MainTab:CreateToggle({
+    Name = "Auto Farm 💰",
+    CurrentValue = false,
+    Flag = "AutoFarmToggle",
+    Callback = function(Value)
+        AutoFarm = Value
+        if AutoFarm then
+            Rayfield:Notify({
+                Title = "Auto Farm Activated",
+                Content = "Starting automatic farming...",
+                Duration = 5,
+                Image = 4483362458
+            })
+            
+            local farmCoroutine = coroutine.create(function()
+                while AutoFarm and task.wait(1) do
+                    pcall(function()
+                        -- Launch sequence
+                        Remotes.LaunchEvents.Launch:FireServer()
+                        task.wait(2)
+                        
+                        -- Teleport far away
+                        local character = player.Character
+                        if character and character:FindFirstChild("HumanoidRootPart") then
+                            character.HumanoidRootPart.CFrame = CFrame.new(999999, 999999, 999999)
+                        end
+                        
+                        task.wait(2)
+                        
+                        -- Return sequence
+                        Remotes.LaunchEvents.Return:FireServer()
+                        task.wait(3)
+                    end)
+                end
+            end)
+            coroutine.resume(farmCoroutine)
+        else
+            Rayfield:Notify({
+                Title = "Auto Farm Stopped",
+                Content = "Farming has been disabled",
+                Duration = 4,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- Items Tab
+local ItemsTab = Window:CreateTab("Items", 4483362458)
+
+ItemsTab:CreateToggle({
+    Name = "Auto Buy All Items 🛍️",
+    CurrentValue = false,
+    Flag = "AutoBuyItemsToggle",
+    Callback = function(Value)
+        AutoBuyItems = Value
+        if AutoBuyItems then
+            Rayfield:Notify({
+                Title = "Auto Buy Activated",
+                Content = "Purchasing all available items...",
+                Duration = 5,
+                Image = 4483362458
+            })
+            
+            local buyCoroutine = coroutine.create(function()
+                local itemList = {
+                    "block_1", "wing_1", "fuel_1", "propeller_1", "seat_1", 
+                    "fuel_2", "wing_2", "fuel_3", "propeller_2", "balloon", 
+                    "boost_1", "missile_1", "shield", "wheel_1", "wheel_2"
+                }
+                
+                while AutoBuyItems do
+                    for _, itemName in ipairs(itemList) do
+                        if not AutoBuyItems then break end
+                        pcall(function()
+                            Remotes.ShopEvents.BuyBlock:FireServer(itemName)
+                        end)
+                        task.wait(0.2)
+                    end
+                    task.wait(2)
+                end
+            end)
+            coroutine.resume(buyCoroutine)
+        else
+            Rayfield:Notify({
+                Title = "Auto Buy Stopped",
+                Content = "Stopped purchasing items",
+                Duration = 4,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- Events Tab
+local EventsTab = Window:CreateTab("Events", 4483362458)
+
+-- Blood Moon Event
+EventsTab:CreateToggle({
+    Name = "Auto Blood Moon & Spins 🌙",
+    CurrentValue = false,
+    Flag = "AutoBloodMoonToggle",
+    Callback = function(Value)
+        AutoBloodMoon = Value
+        if AutoBloodMoon then
+            Rayfield:Notify({
+                Title = "Blood Moon Activated",
+                Content = "Farming Blood Coins and Spins...",
+                Duration = 5,
+                Image = 4483362458
+            })
+            
+            -- Evil Eye Farm
+            local evilEyeCoroutine = coroutine.create(function()
+                while AutoBloodMoon do
+                    pcall(function()
+                        Remotes.EventEvents.SpawnEvilEye:InvokeServer()
+                        task.wait(0.5)
+                        Remotes.EventEvents.KillEvilEye:InvokeServer()
+                    end)
+                    task.wait(0.5)
+                end
+            end)
+            
+            -- Spin Farm
+            local spinCoroutine = coroutine.create(function()
+                while AutoBloodMoon do
+                    pcall(function()
+                        Remotes.SpinEvents.PurchaseSpin:InvokeServer()
+                        task.wait(0.3)
+                        Remotes.SpinEvents.PerformSpin:InvokeServer()
+                    end)
+                    task.wait(0.3)
+                end
+            end)
+            
+            coroutine.resume(evilEyeCoroutine)
+            coroutine.resume(spinCoroutine)
+        else
+            Rayfield:Notify({
+                Title = "Blood Moon Stopped",
+                Content = "Stopped Blood Moon farming",
+                Duration = 4,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- Aurora Gem Farm
+EventsTab:CreateToggle({
+    Name = "Auto Aurora Gems 💎",
+    CurrentValue = false,
+    Flag = "AutoAuroraToggle",
+    Callback = function(Value)
+        AutoAurora = Value
+        if AutoAurora then
+            Rayfield:Notify({
+                Title = "Aurora Gems Activated",
+                Content = "Collecting infinite Aurora Gems...",
+                Duration = 5,
+                Image = 4483362458
+            })
+            
+            local auroraCoroutine = coroutine.create(function()
+                while AutoAurora do
+                    pcall(function()
+                        local fakePart = Instance.new("Part")
+                        fakePart.Name = "AuroraCollector"
+                        Remotes.UIEvents.AuroraCollect:FireServer(fakePart)
+                        fakePart:Destroy()
+                    end)
+                    task.wait(0.05)
+                end
+            end)
+            coroutine.resume(auroraCoroutine)
+        else
+            Rayfield:Notify({
+                Title = "Aurora Gems Stopped",
+                Content = "Stopped collecting Aurora Gems",
+                Duration = 4,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- Player Tab
+local PlayerTab = Window:CreateTab("Player", 4483362458)
+
+-- WalkSpeed
+local currentWalkSpeed = 16
+PlayerTab:CreateSlider({
+    Name = "WalkSpeed",
+    Range = {16, 200},
+    Increment = 4,
+    Suffix = "Speed",
+    CurrentValue = 16,
+    Flag = "WalkSpeedSlider",
+    Callback = function(Value)
+        currentWalkSpeed = Value
+        pcall(function()
+            local character = player.Character
+            if character and character:FindFirstChild("Humanoid") then
+                character.Humanoid.WalkSpeed = Value
+            end
+        end)
+    end
+})
+
+-- JumpPower
+local currentJumpPower = 50
+PlayerTab:CreateSlider({
+    Name = "JumpPower",
+    Range = {50, 200},
+    Increment = 10,
+    Suffix = "Power",
+    CurrentValue = 50,
+    Flag = "JumpPowerSlider",
+    Callback = function(Value)
+        currentJumpPower = Value
+        pcall(function()
+            local character = player.Character
+            if character and character:FindFirstChild("Humanoid") then
+                character.Humanoid.JumpPower = Value
+            end
+        end)
+    end
+})
+
+-- Apply movement when character respawns
+player.CharacterAdded:Connect(function(character)
+    task.wait(2)
+    pcall(function()
+        local humanoid = character:WaitForChild("Humanoid")
+        humanoid.WalkSpeed = currentWalkSpeed
+        humanoid.JumpPower = currentJumpPower
+    end)
+end)
+
+-- Misc Tab
+local MiscTab = Window:CreateTab("Miscellaneous", 4483362458)
+
+-- Anti-AFK
+local antiAFKConnection
+MiscTab:CreateToggle({
+    Name = "Anti-AFK",
+    CurrentValue = false,
+    Flag = "AntiAFKToggle",
+    Callback = function(Value)
+        if Value then
+            antiAFKConnection = player.Idled:Connect(function()
+                game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+                task.wait(1)
+                game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+            end)
+            Rayfield:Notify({
+                Title = "Anti-AFK Enabled",
+                Content = "You won't be kicked for being AFK",
+                Duration = 4,
+                Image = 4483362458
+            })
+        else
+            if antiAFKConnection then
+                antiAFKConnection:Disconnect()
+                antiAFKConnection = nil
+            end
+            Rayfield:Notify({
+                Title = "Anti-AFK Disabled",
+                Content = "AFK kick protection removed",
+                Duration = 4,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- Fullbright
+local fullbrightEnabled = false
+MiscTab:CreateToggle({
+    Name = "Fullbright",
+    CurrentValue = false,
+    Flag = "FullbrightToggle",
+    Callback = function(Value)
+        fullbrightEnabled = Value
+        if fullbrightEnabled then
+            coroutine.resume(coroutine.create(function()
+                while fullbrightEnabled do
+                    Lighting.GlobalShadows = false
+                    Lighting.Brightness = 2
+                    Lighting.ClockTime = 14
+                    Lighting.FogEnd = 100000
+                    task.wait(1)
+                end
+            end))
+            Rayfield:Notify({
+                Title = "Fullbright Enabled",
+                Content = "World lighting improved",
+                Duration = 4,
+                Image = 4483362458
+            })
+        else
+            Lighting.GlobalShadows = true
+            Lighting.Brightness = 1
+            Rayfield:Notify({
+                Title = "Fullbright Disabled",
+                Content = "Default lighting restored",
+                Duration = 4,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- No Fog
+local noFogEnabled = false
+MiscTab:CreateToggle({
+    Name = "No Fog",
+    CurrentValue = false,
+    Flag = "NoFogToggle",
+    Callback = function(Value)
+        noFogEnabled = Value
+        if noFogEnabled then
+            Lighting.FogStart = 100000
+            Lighting.FogEnd = 100000
+            Rayfield:Notify({
+                Title = "No Fog Enabled",
+                Content = "Fog has been removed",
+                Duration = 4,
+                Image = 4483362458
+            })
+        else
+            Lighting.FogStart = 0
+            Lighting.FogEnd = 100000
+            Rayfield:Notify({
+                Title = "No Fog Disabled",
+                Content = "Fog has been restored",
+                Duration = 4,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- Protection Tab
+local ProtectionTab = Window:CreateTab("Protection", 4483362458)
+
+ProtectionTab:CreateToggle({
+    Name = "Anti-Kick Protection",
+    CurrentValue = false,
+    Flag = "AntiKickToggle",
+    Callback = function(Value)
+        if Value then
+            -- Hook metatable to block kicks
+            local mt = getrawmetatable(game)
+            if mt then
+                setreadonly(mt, false)
+                local oldNamecall = mt.__namecall
+                
+                mt.__namecall = newcclosure(function(self, ...)
+                    local method = getnamecallmethod()
+                    if method == "Kick" or method == "kick" then
+                        return nil
+                    end
+                    return oldNamecall(self, ...)
+                end)
+            end
+            
+            Rayfield:Notify({
+                Title = "Anti-Kick Enabled",
+                Content = "Kick attempts will be blocked",
+                Duration = 5,
+                Image = 4483362458
+            })
+        else
+            Rayfield:Notify({
+                Title = "Anti-Kick Disabled",
+                Content = "Kick protection removed",
+                Duration = 4,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- Server Hop
+ProtectionTab:CreateButton({
+    Name = "Server Hop",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "Server Hop",
+            Content = "Finding new server...",
+            Duration = 3,
+            Image = 4483362458
+        })
+        
+        local TeleportService = game:GetService("TeleportService")
+        local placeId = game.PlaceId
+        
+        TeleportService:Teleport(placeId)
+    end
+})
+
+-- Rejoin Server
+ProtectionTab:CreateButton({
+    Name = "Rejoin Server",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "Rejoining",
+            Content = "Reconnecting to current server...",
+            Duration = 3,
+            Image = 4483362458
+        })
+        
+        local TeleportService = game:GetService("TeleportService")
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId)
+    end
+})
+
+-- Credits Tab
+local CreditsTab = Window:CreateTab("Credits", 4483362458)
+
+CreditsTab:CreateLabel("RobloxHub - Build a Plane")
+CreditsTab:CreateLabel("Version: 2.0")
+CreditsTab:CreateLabel("Made by RobloxHub Team")
+CreditsTab:CreateLabel("Thanks for using our script!")
+
+CreditsTab:CreateButton({
+    Name = "Copy Discord (If Available)",
+    Callback = function()
+        setclipboard("RobloxHub Official")
+        Rayfield:Notify({
+            Title = "Copied to Clipboard",
+            Content = "Discord information copied",
+            Duration = 4,
+            Image = 4483362458
+        })
+    end
+})
+
+-- Auto-apply settings on character spawn
+player.CharacterAdded:Connect(function(character)
+    task.wait(2)
+    
+    -- Apply walkspeed/jumppower
+    pcall(function()
+        local humanoid = character:WaitForChild("Humanoid")
+        humanoid.WalkSpeed = currentWalkSpeed
+        humanoid.JumpPower = currentJumpPower
+    end)
+    
+    -- Re-apply fullbright if enabled
+    if fullbrightEnabled then
+        Lighting.GlobalShadows = false
+        Lighting.Brightness = 2
+    end
+    
+    -- Re-apply no fog if enabled
+    if noFogEnabled then
+        Lighting.FogStart = 100000
+        Lighting.FogEnd = 100000
+    end
+end)
+
+-- Initialize character if already exists
+if player.Character then
+    pcall(function()
+        local humanoid = player.Character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = currentWalkSpeed
+            humanoid.JumpPower = currentJumpPower
+        end
+    end)
+end
+
+Rayfield:Notify({
+    Title = "RobloxHub Loaded",
+    Content = "Welcome to RobloxHub! Enjoy the features.",
+    Duration = 6,
+    Image = 4483362458
+})
+
+print("RobloxHub - Build a Plane Script Loaded Successfully!")
