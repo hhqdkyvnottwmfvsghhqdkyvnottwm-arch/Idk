@@ -1,0 +1,117 @@
+-- Roblox hacks 404 | Rayfield GUI (Improved, best-effort "fully working" client script) -- Made by Roblox hacks 404 -- IMPORTANT: This is a client-side exploit script intended to run in a Roblox executor that supports loadstring and game manipulation. -- Some features require HttpService or executor-specific functions (Server Hop may need HttpEnabled / syn.request). Use at your own risk.
+
+-- Services local Players = game:GetService("Players") local RunService = game:GetService("RunService") local UserInputService = game:GetService("UserInputService") local TeleportService = game:GetService("TeleportService") local HttpService = game:GetService("HttpService")
+
+local LocalPlayer = Players.LocalPlayer local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+-- Safe loader for Rayfield-like UI libraries. Try multiple common sources if one fails. local function tryLoad(url) local ok, res = pcall(function() return loadstring(game:HttpGet(url))() end) if ok and res then return res end return nil end
+
+local Rayfield = tryLoad("https://sirius.menu/rayfield") or tryLoad("https://raw.githubusercontent.com/BlissfulDev/Rayfield/main/source.lua") if not Rayfield then warn("Failed to load Rayfield UI library from known URLs. Aborting GUI load.") return end
+
+-- Create Window local Window = Rayfield:CreateWindow({ Name = "Roblox hacks 404", LoadingTitle = "Loading Roblox hacks 404...", ConfigurationSaving = { Enabled = true, FolderName = "RobloxHacks404", FileName = "config" } })
+
+-- Utility functions local function getCharacter(player) return (player.Character or player.CharacterAdded:Wait()) end
+
+local function safeHumanoid(plr) local char = plr.Character if not char then return nil end return char:FindFirstChildOfClass("Humanoid") end
+
+-- TAB 1: Movement local Tab1 = Window:CreateTab("Movement", 4483362458) local speedEnabled = false local speedVal = 16 local infJumpEnabled = false
+
+Tab1:CreateToggle({ Name = "Enable Speed", CurrentValue = false, Flag = "SpeedToggle", Callback = function(v) speedEnabled = v if not v then local hum = safeHumanoid(LocalPlayer) if hum then pcall(function() hum.WalkSpeed = 16 end) end end end })
+
+Tab1:CreateSlider({ Name = "WalkSpeed", Range = {16, 250}, Increment = 1, Suffix = "ws", CurrentValue = 16, Callback = function(val) speedVal = val if speedEnabled then local hum = safeHumanoid(LocalPlayer) if hum then pcall(function() hum.WalkSpeed = val end) end end end })
+
+Tab1:CreateToggle({ Name = "Infinite Jump", CurrentValue = false, Flag = "InfJump", Callback = function(v) infJumpEnabled = v end })
+
+Tab1:CreateButton({ Name = "Teleport Up (50 studs)", Callback = function() local char = getCharacter(LocalPlayer) local hrp = char:FindFirstChild("HumanoidRootPart") if hrp then hrp.CFrame = hrp.CFrame + Vector3.new(0,50,0) end end })
+
+-- Keep WalkSpeed active when enabled (heartbeat loop) spawn(function() while true do RunService.Heartbeat:Wait() if speedEnabled then local hum = safeHumanoid(LocalPlayer) if hum then pcall(function() if hum and hum.Parent then hum.WalkSpeed = speedVal end end) end end end end)
+
+-- Infinite jump handler UserInputService.JumpRequest:Connect(function() if infJumpEnabled then local char = LocalPlayer.Character if char then local hrp = char:FindFirstChild("HumanoidRootPart") local hum = char:FindFirstChildOfClass("Humanoid") if hrp and hum then -- apply upward velocity and set Humanoid state hrp.Velocity = Vector3.new(hrp.Velocity.X, 60, hrp.Velocity.Z) pcall(function() hum:ChangeState(Enum.HumanoidStateType.Jumping) end) end end end end)
+
+-- TAB 2: ESP Players local Tab2 = Window:CreateTab("ESP", 4483362458) local espEnabled = false local esps = {}
+
+local function createESP(plr) if not plr.Character then return end if plr == LocalPlayer then return end local root = plr.Character:FindFirstChild("HumanoidRootPart") or plr.Character:FindFirstChild("Head") if not root then return end
+
+-- Avoid duplicate
+if esps[plr] and esps[plr].Parent then return end
+
+local bg = Instance.new("BillboardGui")
+bg.Name = "RH404_ESP"
+bg.Size = UDim2.new(0,160,0,40)
+bg.AlwaysOnTop = true
+bg.ResetOnSpawn = false
+bg.Parent = root
+
+local lbl = Instance.new("TextLabel")
+lbl.Size = UDim2.new(1,0,1,0)
+lbl.BackgroundTransparency = 1
+lbl.TextScaled = true
+lbl.Font = Enum.Font.GothamBold
+lbl.Text = plr.Name
+lbl.TextStrokeTransparency = 0.6
+lbl.Parent = bg
+
+esps[plr] = bg
+
+end
+
+local function removeESP(plr) if esps[plr] then pcall(function() esps[plr]:Destroy() end) esps[plr] = nil end end
+
+Tab2:CreateToggle({ Name = "Enable Player ESP", CurrentValue = false, Callback = function(v) espEnabled = v if not v then for p,_ in pairs(esps) do removeESP(p) end else for _,p in pairs(Players:GetPlayers()) do if p ~= LocalPlayer then createESP(p) end end end end })
+
+Players.PlayerAdded:Connect(function(p) p.CharacterAdded:Connect(function() if espEnabled then createESP(p) end end) end) Players.PlayerRemoving:Connect(function(p) removeESP(p) end)
+
+-- TAB 3: Rejoin & Server Hop local Tab3 = Window:CreateTab("Session", 4483362458) Tab3:CreateButton({ Name = "Rejoin Server", Callback = function() pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end) end })
+
+Tab3:CreateButton({ Name = "Server Hop (best-effort)", Callback = function() spawn(function() pcall(function() if not HttpService then warn("HttpService not available") return end local placeId = tostring(game.PlaceId) local url = "https://games.roblox.com/v1/games/"..placeId.."/servers/Public?limit=100" local ok, res = pcall(function() return HttpService:GetAsync(url) end) if not ok or not res then warn("Server list fetch failed") return end local data = HttpService:JSONDecode(res) if not data or not data.data then warn("No server data") return end for _,server in ipairs(data.data) do if server.playing < server.maxPlayers and server.id ~= game.JobId then TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, LocalPlayer) return end end warn("No suitable server found to hop to.") end) end) end })
+
+-- TAB 4: Info & Owner local Tab4 = Window:CreateTab("Info", 4483362458) Tab4:CreateLabel({ Name = "Script Name: Roblox hacks 404" }) Tab4:CreateLabel({ Name = "Made by: Roblox hacks 404" }) Tab4:CreateParagraph({ Title = "Notes", Content = "This GUI requires an executor that supports loadstring and UI. Some features (Server Hop) may require HttpService or executor-specific request functions. Use responsibly and only where allowed." })
+
+-- TAB 5: External GUI Loader (the exact URL you provided) local Tab5 = Window:CreateTab("Extras", 4483362458) Tab5:CreateButton({ Name = "Load external GUI (your raw URL)", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/hhqdkyvnottwmfvsghhqdkyvnottwm-arch/Idk/main/los%20niooooooo.txt"))() end) end })
+
+-- TAB 6: Premium — Anti Fling / Anti Die / God Mode (best-effort) local Tab6 = Window:CreateTab("Premium", 4483362458) local antiFling = false local antiDie = false local godMode = false
+
+Tab6:CreateToggle({ Name = "Anti Fling", CurrentValue = false, Callback = function(v) antiFling = v end }) Tab6:CreateToggle({ Name = "Anti Die (auto-respawn)", CurrentValue = false, Callback = function(v) antiDie = v end }) Tab6:CreateToggle({ Name = "God Mode (high HP)", CurrentValue = false, Callback = function(v) godMode = v end })
+
+-- Implementations spawn(function() while true do RunService.Heartbeat:Wait() local char = LocalPlayer.Character if not char then continue end local hrp = char:FindFirstChild("HumanoidRootPart") local hum = char:FindFirstChildOfClass("Humanoid")
+
+if antiFling and hrp and hum then
+        pcall(function()
+            -- try to reduce abnormal velocities and reset PlatformStand
+            if hrp.Anchored then hrp.Anchored = false end
+            if math.abs(hrp.Velocity.Y) > 150 then
+                hrp.Velocity = Vector3.new(hrp.Velocity.X, 0, hrp.Velocity.Z)
+            end
+            hum.PlatformStand = false
+        end)
+    end
+
+    if godMode and hum then
+        pcall(function()
+            hum.MaxHealth = 1e9
+            hum.Health = hum.MaxHealth
+        end)
+    end
+
+    if antiDie and hum then
+        pcall(function()
+            if hum.Health <= 0 then
+                -- attempt to respawn quickly
+                local success, err = pcall(function()
+                    TeleportService:Teleport(game.PlaceId)
+                end)
+                if not success then warn("Auto-respawn failed:", err) end
+            end
+        end)
+    end
+end
+
+end)
+
+-- Keybind: Toggle GUI (press RightControl) UserInputService.InputBegan:Connect(function(input, gameProcessed) if gameProcessed then return end if input.KeyCode == Enum.KeyCode.RightControl then pcall(function() -- Rayfield might expose a Toggle function; try common properties, else toggle main GUI visibility if Window.Toggle then Window:Toggle() -- some Rayfield versions else -- attempt to find Rayfield main ScreenGui and toggle for _,screen in pairs(LocalPlayer:WaitForChild("PlayerGui"):GetChildren()) do if screen:IsA("ScreenGui") and (screen.Name:lower():find("rayfield") or screen.Name:lower():find("gui")) then screen.Enabled = not screen.Enabled end end end end) end end)
+
+-- Cleanup on unload local function cleanup() for p,_ in pairs(esps) do pcall(function() removeESP(p) end) end end
+
+-- Try to connect a safe unload event if Rayfield provides it if Rayfield and Rayfield.Disconnect then pcall(function() Rayfield.Disconnect:Connect(cleanup) end) end
+
+print("Roblox hacks 404 GUI loaded (improved).")
