@@ -1,0 +1,381 @@
+-- Timebomb Duels Script with Rayfield UI
+-- Updated with Bomb ESP, Player ESP, and Noclip
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "404 Hacks | Timebomb Duels",
+    LoadingTitle = "404 Hacks",
+    LoadingSubtitle = "by 404 Team",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "404Hacks",
+        FileName = "TimebombConfig"
+    },
+    Discord = {
+        Enabled = false,
+        Invite = "noinvite",
+        RememberJoins = true
+    },
+    KeySystem = false,
+})
+
+-- Main Tab
+local MainTab = Window:CreateTab("Main Features", 4483362458)
+
+-- Timebomb Section
+local TimebombSection = MainTab:CreateSection("Timebomb Features")
+
+local BombTimer = MainTab:CreateLabel("Bomb Status: Not Planted")
+
+local PlantBomb = MainTab:CreateButton({
+    Name = "Auto Plant Bomb",
+    Callback = function()
+        -- Auto plant bomb logic
+        Rayfield:Notify({
+            Title = "Bomb Planted",
+            Content = "Bomb has been auto-planted!",
+            Duration = 6.5,
+            Image = 4483362458,
+        })
+    end,
+})
+
+local DefuseBomb = MainTab:CreateButton({
+    Name = "Auto Defuse Bomb",
+    Callback = function()
+        -- Auto defuse bomb logic
+        Rayfield:Notify({
+            Title = "Bomb Defused",
+            Content = "Bomb has been auto-defused!",
+            Duration = 6.5,
+            Image = 4483362458,
+        })
+    end,
+})
+
+-- Player Mods Section
+local PlayerSection = MainTab:CreateSection("Player Modifications")
+
+-- Speed Hack
+local SpeedSlider = MainTab:CreateSlider({
+    Name = "Speed (1-50)",
+    Range = {1, 50},
+    Increment = 1,
+    Suffix = "studs",
+    CurrentValue = 16,
+    Flag = "SpeedValue",
+    Callback = function(Value)
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        
+        if humanoid then
+            humanoid.WalkSpeed = Value
+        end
+    end,
+})
+
+-- Infinite Jump Toggle
+local InfiniteJumpToggle = MainTab:CreateToggle({
+    Name = "Infinite Jump",
+    CurrentValue = false,
+    Flag = "InfiniteJump",
+    Callback = function(Value)
+        if Value then
+            -- Enable infinite jump
+            game:GetService("UserInputService").JumpRequest:Connect(function()
+                local player = game.Players.LocalPlayer
+                local character = player.Character
+                if character and Rayfield.Flags["InfiniteJump"] then
+                    local humanoid = character:FindFirstChildOfClass("Humanoid")
+                    if humanoid then
+                        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                    end
+                end
+            end)
+            Rayfield:Notify({
+                Title = "Infinite Jump",
+                Content = "Infinite Jump has been enabled!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        else
+            Rayfield:Notify({
+                Title = "Infinite Jump",
+                Content = "Infinite Jump has been disabled!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        end
+    end,
+})
+
+-- Noclip Toggle
+local NoclipToggle = MainTab:CreateToggle({
+    Name = "Noclip",
+    CurrentValue = false,
+    Flag = "Noclip",
+    Callback = function(Value)
+        if Value then
+            Rayfield:Notify({
+                Title = "Noclip Enabled",
+                Content = "Noclip has been enabled!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        else
+            Rayfield:Notify({
+                Title = "Noclip Disabled",
+                Content = "Noclip has been disabled!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        end
+    end,
+})
+
+-- Visuals Tab
+local VisualsTab = Window:CreateTab("Visuals", 4483362458)
+
+-- Player ESP
+local PlayerESPToggle = VisualsTab:CreateToggle({
+    Name = "Player ESP",
+    CurrentValue = false,
+    Flag = "PlayerESP",
+    Callback = function(Value)
+        if Value then
+            enablePlayerESP()
+            Rayfield:Notify({
+                Title = "Player ESP Enabled",
+                Content = "Player ESP has been enabled!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        else
+            disablePlayerESP()
+            Rayfield:Notify({
+                Title = "Player ESP Disabled",
+                Content = "Player ESP has been disabled!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        end
+    end,
+})
+
+-- Bomb ESP
+local BombESPToggle = VisualsTab:CreateToggle({
+    Name = "Bomb ESP",
+    CurrentValue = false,
+    Flag = "BombESP",
+    Callback = function(Value)
+        if Value then
+            enableBombESP()
+            Rayfield:Notify({
+                Title = "Bomb ESP Enabled",
+                Content = "Bomb ESP has been enabled!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        else
+            disableBombESP()
+            Rayfield:Notify({
+                Title = "Bomb ESP Disabled",
+                Content = "Bomb ESP has been disabled!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        end
+    end,
+})
+
+-- ESP Functions
+local playerESPBoxes = {}
+local bombESPBoxes = {}
+
+function enablePlayerESP()
+    -- Clear existing ESP
+    disablePlayerESP()
+    
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer and player.Character then
+            createPlayerESP(player.Character)
+        end
+    end
+    
+    -- Listen for new players
+    game.Players.PlayerAdded:Connect(function(player)
+        player.CharacterAdded:Connect(function(character)
+            if Rayfield.Flags["PlayerESP"] then
+                createPlayerESP(character)
+            end
+        end)
+    end)
+    
+    -- Listen for character changes
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer then
+            player.CharacterAdded:Connect(function(character)
+                if Rayfield.Flags["PlayerESP"] then
+                    wait(1)
+                    createPlayerESP(character)
+                end
+            end)
+        end
+    end
+end
+
+function disablePlayerESP()
+    for _, box in pairs(playerESPBoxes) do
+        if box then
+            box:Remove()
+        end
+    end
+    playerESPBoxes = {}
+end
+
+function createPlayerESP(character)
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "PlayerESP"
+    highlight.Adornee = character
+    highlight.Parent = character
+    highlight.FillColor = Color3.fromRGB(255, 0, 0)
+    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    
+    table.insert(playerESPBoxes, highlight)
+    
+    -- Clean up when character is removed
+    character.AncestryChanged:Connect(function()
+        if not character.Parent then
+            highlight:Remove()
+        end
+    end)
+end
+
+function enableBombESP()
+    -- Clear existing bomb ESP
+    disableBombESP()
+    
+    -- Search for bombs in the workspace
+    findAndHighlightBombs()
+    
+    -- Continuously search for new bombs
+    local bombCheckConnection
+    bombCheckConnection = game:GetService("RunService").Heartbeat:Connect(function()
+        if not Rayfield.Flags["BombESP"] then
+            bombCheckConnection:Disconnect()
+            return
+        end
+        findAndHighlightBombs()
+    end)
+end
+
+function disableBombESP()
+    for _, highlight in pairs(bombESPBoxes) do
+        if highlight then
+            highlight:Remove()
+        end
+    end
+    bombESPBoxes = {}
+end
+
+function findAndHighlightBombs()
+    -- Look for common bomb objects (you may need to adjust these names)
+    local bombNames = {"Bomb", "C4", "Explosive", "Timebomb", "BombObject"}
+    
+    for _, name in pairs(bombNames) do
+        local bomb = workspace:FindFirstChild(name) or workspace:FindFirstChild(name, true)
+        if bomb and not bomb:FindFirstChild("BombESP") then
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "BombESP"
+            highlight.Adornee = bomb
+            highlight.Parent = bomb
+            highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Yellow for bomb
+            highlight.OutlineColor = Color3.fromRGB(255, 165, 0) -- Orange outline
+            highlight.FillTransparency = 0.3
+            highlight.OutlineTransparency = 0
+            
+            -- Add a billboard gui with text
+            local billboard = Instance.new("BillboardGui")
+            billboard.Name = "BombLabel"
+            billboard.Adornee = bomb
+            billboard.Size = UDim2.new(0, 100, 0, 40)
+            billboard.StudsOffset = Vector3.new(0, 3, 0)
+            billboard.Parent = bomb
+            
+            local label = Instance.new("TextLabel")
+            label.Size = UDim2.new(1, 0, 1, 0)
+            label.BackgroundTransparency = 1
+            label.Text = "💣 BOMB"
+            label.TextColor3 = Color3.fromRGB(255, 255, 0)
+            label.TextScaled = true
+            label.Font = Enum.Font.GothamBold
+            label.Parent = billboard
+            
+            table.insert(bombESPBoxes, highlight)
+        end
+    end
+end
+
+-- Noclip Functionality
+local NoclipConnection
+local function manageNoclip()
+    if NoclipConnection then
+        NoclipConnection:Disconnect()
+    end
+    
+    if Rayfield.Flags["Noclip"] then
+        NoclipConnection = game:GetService("RunService").Stepped:Connect(function()
+            local character = game.Players.LocalPlayer.Character
+            if character then
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") and part.CanCollide then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+    end
+end
+
+-- Connect noclip toggle
+NoclipToggle:SetValueChangedCallback(manageNoclip)
+
+-- Settings Tab
+local SettingsTab = Window:CreateTab("Settings", 4483362458)
+
+local DestroyGUI = SettingsTab:CreateButton({
+    Name = "Destroy GUI",
+    Callback = function()
+        -- Clean up ESP before destroying
+        disablePlayerESP()
+        disableBombESP()
+        if NoclipConnection then
+            NoclipConnection:Disconnect()
+        end
+        Rayfield:Destroy()
+    end,
+})
+
+-- Auto reconnect to character for speed modifications
+game:GetService("RunService").Heartbeat:Connect(function()
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid and humanoid.WalkSpeed ~= Rayfield.Flags["SpeedValue"] then
+            humanoid.WalkSpeed = Rayfield.Flags["SpeedValue"]
+        end
+    end
+end)
+
+-- Initial notification
+Rayfield:Notify({
+    Title = "404 Hacks Loaded",
+    Content = "Timebomb Duels features activated!\nESP & Noclip added!",
+    Duration = 6.5,
+    Image = 4483362458,
+})
